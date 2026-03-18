@@ -219,7 +219,7 @@ export async function startDaemon(): Promise<void> {
     const spawnSession = async (options: SpawnSessionOptions): Promise<SpawnSessionResult> => {
       logger.debugLargeJson('[DAEMON RUN] Spawning session', options);
 
-      const { directory, sessionId, machineId, approvedNewDirectoryCreation = true } = options;
+      const { directory, sessionId, machineId, approvedNewDirectoryCreation = true, dangerouslySkipPermissions = false } = options;
       let directoryCreated = false;
 
       try {
@@ -388,7 +388,8 @@ export async function startDaemon(): Promise<void> {
           const cliPath = join(projectPath(), 'dist', 'index.mjs');
           // Determine agent command - support claude, codex, and gemini
           const agent = options.agent === 'gemini' ? 'gemini' : (options.agent === 'codex' ? 'codex' : 'claude');
-          const fullCommand = `node --no-warnings --no-deprecation ${cliPath} ${agent} --happy-starting-mode remote --started-by daemon`;
+          const yoloFlag = dangerouslySkipPermissions ? ' --dangerously-skip-permissions' : '';
+          const fullCommand = `node --no-warnings --no-deprecation ${cliPath} ${agent} --happy-starting-mode remote --started-by daemon${yoloFlag}`;
 
           // Spawn in tmux with environment variables
           // IMPORTANT: Pass complete environment (process.env + extraEnv) because:
@@ -492,7 +493,8 @@ export async function startDaemon(): Promise<void> {
           const args = [
             agentCommand,
             '--happy-starting-mode', 'remote',
-            '--started-by', 'daemon'
+            '--started-by', 'daemon',
+            ...(dangerouslySkipPermissions ? ['--dangerously-skip-permissions'] : []),
           ];
 
           // TODO: In future, sessionId could be used with --resume to continue existing sessions
