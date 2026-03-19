@@ -35,6 +35,6 @@ jobs:
             exit 1
           fi
 
-      - run: npm publish --provenance --access public
+      - run: npm publish --provenance --access public --ignore-scripts
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
